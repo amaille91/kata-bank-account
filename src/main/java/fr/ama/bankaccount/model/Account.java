@@ -1,11 +1,14 @@
 package fr.ama.bankaccount.model;
 
+import java.beans.ConstructorProperties;
+
 public class Account {
 
 	private String id;
 	private int balance; // in cents
 
-	private Account(String id, int balance) {
+	@ConstructorProperties({ "id", "balance" })
+	public Account(String id, int balance) {
 		this.id = id;
 		this.balance = balance;
 	}
