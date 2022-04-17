@@ -212,6 +212,57 @@ class AccountControllerIntegrationTest {
 			assertThat(currentAccount.getBalance())
 					.isEqualTo(50000 - successivewithdrawalsAmount.stream().reduce(Math::addExact).orElse(-1));
 		}
+
+		@Test
+		void withdrawing_more_than_account_balance_should_give_back_badRequest() throws Exception {
+			List<Integer> successivewithdrawalsAmount = List.of(1000, 2000, 35, 76, 236754);
+			String createAccountResponse = mockMvc.perform(MockMvcRequestBuilders.put("/account"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account currentAccount = objectMapper.readValue(createAccountResponse, Account.class);
+			String initialId = currentAccount.getId();
+
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/5000"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn();
+
+			String badRequestContent = mockMvc.perform(put("/account/" + currentAccount.getId() + "/withdrawal/5001"))
+					.andExpect(status().isBadRequest())
+					.andReturn()
+					.getResponse()
+					.getContentAsString();
+			Account account = objectMapper.readValue(createAccountResponse, Account.class);
+
+			assertThat(account.getId()).isEqualTo(initialId);
+			assertThat(account.getBalance()).isEqualTo(5000);
+		}
+
+		@Test
+		void withdrawing_the_exact_account_balance_should_give_back_an_empty_account() throws Exception {
+			List<Integer> successivewithdrawalsAmount = List.of(1000, 2000, 35, 76, 236754);
+			String createAccountResponse = mockMvc.perform(MockMvcRequestBuilders.put("/account"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account currentAccount = objectMapper.readValue(createAccountResponse, Account.class);
+			String initialId = currentAccount.getId();
+
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/5000"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn();
+
+			String withdrawalResponse = mockMvc.perform(put("/account/" + currentAccount.getId() + "/withdrawal/5000"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse()
+					.getContentAsString();
+
+			Account account = objectMapper.readValue(createAccountResponse, Account.class);
+
+			assertThat(account.getId()).isEqualTo(initialId);
+			assertThat(account.getBalance()).isEqualTo(0);
+		}
 	}
 
 }
