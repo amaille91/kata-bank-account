@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.ama.bankaccount.model.Account;
+import fr.ama.bankaccount.model.History;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -268,7 +269,7 @@ class AccountControllerIntegrationTest {
 	}
 
 	@Nested
-	class History {
+	class Histories {
 
 		@Test
 		void requesting_history_on_an_NON_existing_account_should_give_back_notFound() throws Exception {
