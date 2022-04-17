@@ -50,7 +50,7 @@ class AccountControllerIntegrationTest {
 				.getResponse().getContentAsString();
 		Account initialAccount = objectMapper.readValue(createAccountResponse, Account.class);
 
-		String depositResponse = mockMvc.perform(put("account/" + initialAccount.getId() + "/deposit/1000"))
+		String depositResponse = mockMvc.perform(put("/account/" + initialAccount.getId() + "/deposit/1000"))
 				.andExpect(status().is2xxSuccessful())
 				.andReturn()
 				.getResponse().getContentAsString();
