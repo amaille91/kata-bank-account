@@ -36,7 +36,7 @@ public class AccountServiceTest {
 	private AccountRepository accountRepository;
 
 	@Mock
-	private AccountService historyRepository;
+	private HistoryRepository historyRepository;
 
 	@Captor
 	private ArgumentCaptor<Account> accountCaptor;
@@ -66,6 +66,16 @@ public class AccountServiceTest {
 			assertThat(overridenAccount.getId()).isEqualTo("id");
 			assertThat(overridenAccount.getBalance()).isEqualTo(600);
 			assertThat(returnedAccount).usingRecursiveComparison().isEqualTo(overridenAccount);
+		}
+
+		@Test
+		void depositting_in_an_account_should_notify_history_via_historyRepository()
+				throws Exception {
+			when(accountRepository.retrieveAccount("id")).thenReturn(new Account("id", 525));
+
+			service.deposit("id", 75);
+
+			verify(historyRepository, times(1)).newDepositOnAccount(new Account("id", 600), 75);
 		}
 
 		@Test
@@ -110,6 +120,17 @@ public class AccountServiceTest {
 			assertThat(overridenAccount.getId()).isEqualTo("id");
 			assertThat(overridenAccount.getBalance()).isEqualTo(500);
 			assertThat(returnedAccount).usingRecursiveComparison().isEqualTo(overridenAccount);
+		}
+
+		@Test
+		void withdrawing_from_an_account_should_update_the_history_via_the_repository()
+				throws Exception {
+			when(accountRepository.retrieveAccount("id")).thenReturn(new Account("id", 525));
+
+			service.withdraw("id", 25);
+
+			verify(historyRepository).newDepositOnAccount(new Account("id", 500), 25);
+
 		}
 
 		@Test

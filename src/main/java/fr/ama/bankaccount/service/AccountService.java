@@ -1,7 +1,5 @@
 package fr.ama.bankaccount.service;
 
-import java.util.LinkedList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +10,12 @@ import fr.ama.bankaccount.model.History;
 public class AccountService {
 
 	private AccountRepository accountRepository;
+	private HistoryRepository historyRepository;
 
 	@Autowired
-	public AccountService(AccountRepository accountRepository) {
+	public AccountService(AccountRepository accountRepository, HistoryRepository historyRepository) {
 		this.accountRepository = accountRepository;
+		this.historyRepository = historyRepository;
 	}
 
 	public Account createNewAccount() {
@@ -56,7 +56,7 @@ public class AccountService {
 
 	public History getHistory(String accountId) throws UnknownAccountException {
 		accountRepository.retrieveAccount(accountId);
-		return new History(new LinkedList<>());
+		return historyRepository.getHistory(accountId);
 	}
 
 }
