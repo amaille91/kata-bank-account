@@ -95,6 +95,20 @@ class AccountControllerIntegrationTest {
 					.andReturn();
 		}
 
+		@Test
+		void depositting_negative_amount_should_give_back_badRequest()
+				throws Exception {
+			String createAccountResponse = mockMvc.perform(MockMvcRequestBuilders.put("/account"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account currentAccount = objectMapper.readValue(createAccountResponse, Account.class);
+
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/-1200"))
+					.andExpect(status().isBadRequest())
+					.andReturn();
+		}
+
 		private Account depositOnAccount(Account account, Integer amount)
 				throws UnsupportedEncodingException, Exception {
 			String response = mockMvc.perform(put("/account/" + account.getId() + "/deposit/" + amount))
