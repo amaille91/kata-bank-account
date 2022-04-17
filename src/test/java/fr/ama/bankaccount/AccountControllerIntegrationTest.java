@@ -181,6 +181,37 @@ class AccountControllerIntegrationTest {
 					.andExpect(status().isBadRequest())
 					.andReturn();
 		}
+
+		@Test
+		void withdrawing_multiple_times_on_an_existing_account_should_give_back_the_new_account_with_the_balance_decreased_by_the_sum_of_the_withdrawals()
+				throws Exception {
+			// TODO : use Property-based testing to generate random amounts (jqwik ?)
+			List<Integer> successivewithdrawalsAmount = List.of(1000, 2000, 35, 76, 236754);
+			String createAccountResponse = mockMvc.perform(MockMvcRequestBuilders.put("/account"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account currentAccount = objectMapper.readValue(createAccountResponse, Account.class);
+			String initialId = currentAccount.getId();
+
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/50000"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn();
+
+			for (Integer amount : successivewithdrawalsAmount) {
+				String response = mockMvc.perform(put("/account/" + currentAccount.getId() + "/withdrawal/" + amount))
+						.andExpect(status().is2xxSuccessful())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+
+				currentAccount = objectMapper.readValue(response, Account.class);
+			}
+
+			assertThat(currentAccount.getId()).isEqualTo(initialId);
+			assertThat(currentAccount.getBalance())
+					.isEqualTo(50000 - successivewithdrawalsAmount.stream().reduce(Math::addExact).orElse(-1));
+		}
 	}
 
 }
