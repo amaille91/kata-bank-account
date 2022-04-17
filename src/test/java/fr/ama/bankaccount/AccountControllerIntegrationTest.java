@@ -84,6 +84,14 @@ class AccountControllerIntegrationTest {
 				.isEqualTo(successiveDepositsAmount.stream().reduce(Math::addExact).orElse(-1));
 	}
 
+	@Test
+	void depositting_on_a_NON_existing_account_should_give_back_404()
+			throws Exception {
+		mockMvc.perform(put("/account/non-existing-account/deposit/10000"))
+				.andExpect(status().isNotFound())
+				.andReturn();
+	}
+
 	private Account depositOnAccount(Account account, Integer amount) throws UnsupportedEncodingException, Exception {
 		String response = mockMvc.perform(put("/account/" + account.getId() + "/deposit/" + amount))
 				.andExpect(status().is2xxSuccessful())
