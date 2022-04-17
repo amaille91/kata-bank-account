@@ -40,4 +40,18 @@ public class AccountController {
 		}
 	}
 
+	@PutMapping("/{accountId}/withdrawal/{amount}")
+	public @ResponseBody ResponseEntity<Account> withdrawFromAccount(@PathVariable("accountId") String accountId,
+			@PathVariable("amount") Integer amount) {
+		if (amount <= 0) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		try {
+			return ResponseEntity.ok(accountService.withdraw(accountId, amount));
+		} catch (UnknownAccountException e) {
+			return ResponseEntity.notFound().build();
+		}
+	}
+
 }

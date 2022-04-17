@@ -32,4 +32,17 @@ public class AccountService {
 		return newAccount;
 	}
 
+	public Account withdraw(String accountId, Integer amount) throws UnknownAccountException {
+		Account oldAccount = accountRepository.retrieveAccount(accountId);
+		Account newAccount = new Account(oldAccount.getId(), oldAccount.getBalance() - amount);
+
+		try {
+			accountRepository.overrideAccount(newAccount);
+		} catch (UnknownAccountException e) {
+			throw new IllegalStateException(
+					"The account " + newAccount.getId() + " has disappeared between getting it and overriding it");
+		}
+		return newAccount;
+	}
+
 }

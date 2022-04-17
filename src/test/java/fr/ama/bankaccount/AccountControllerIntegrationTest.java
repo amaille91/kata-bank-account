@@ -136,17 +136,16 @@ class AccountControllerIntegrationTest {
 					.getResponse().getContentAsString();
 			Account initialAccount = objectMapper.readValue(createAccountResponse, Account.class);
 
-			String depositResponse = mockMvc.perform(put("/account/" + initialAccount.getId() + "/deposit/1000"))
+			mockMvc.perform(put("/account/" + initialAccount.getId() + "/deposit/1000"))
 					.andExpect(status().is2xxSuccessful())
 					.andReturn()
 					.getResponse().getContentAsString();
-			Account fullAccount = objectMapper.readValue(depositResponse, Account.class);
 
 			String withdrawalResponse = mockMvc.perform(put("/account/" + initialAccount.getId() + "/withdrawal/1000"))
 					.andExpect(status().is2xxSuccessful())
 					.andReturn()
 					.getResponse().getContentAsString();
-			Account newAccount = objectMapper.readValue(depositResponse, Account.class);
+			Account newAccount = objectMapper.readValue(withdrawalResponse, Account.class);
 
 			assertThat(newAccount.getId()).isEqualTo(initialAccount.getId());
 			assertThat(newAccount.getBalance()).isEqualTo(0);
@@ -169,7 +168,7 @@ class AccountControllerIntegrationTest {
 					.getResponse().getContentAsString();
 			Account initialAccount = objectMapper.readValue(createAccountResponse, Account.class);
 
-			String depositResponse = mockMvc.perform(put("/account/" + initialAccount.getId() + "/deposit/5000"))
+			mockMvc.perform(put("/account/" + initialAccount.getId() + "/deposit/5000"))
 					.andExpect(status().is2xxSuccessful())
 					.andReturn()
 					.getResponse().getContentAsString();
