@@ -9,6 +9,14 @@ public class Operation {
 	private int amount;
 	private int accountBalance;
 
+	public Operation(OperationType type, int amount, int accountBalance) {
+		this.type = type;
+		// TODO introduce indirection for testing
+		this.date = new Date();
+		this.amount = amount;
+		this.accountBalance = accountBalance;
+	}
+
 	public OperationType getType() {
 		return type;
 	}

@@ -8,6 +8,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +22,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import fr.ama.bankaccount.model.Account;
+import fr.ama.bankaccount.model.History;
+import fr.ama.bankaccount.model.Operation;
+import fr.ama.bankaccount.model.Operation.OperationType;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTest {
@@ -29,6 +34,9 @@ public class AccountServiceTest {
 
 	@Mock
 	private AccountRepository accountRepository;
+
+	@Mock
+	private AccountService historyRepository;
 
 	@Captor
 	private ArgumentCaptor<Account> accountCaptor;
@@ -163,6 +171,28 @@ public class AccountServiceTest {
 			doThrow(new UnknownAccountException("id")).when(accountRepository).retrieveAccount("id");
 
 			assertThrows(UnknownAccountException.class, () -> service.getHistory("id"));
+		}
+
+		@Test
+		void requesting_history_on_an_existing_account_should_delegate_to_historyRepository() throws Exception {
+			when(accountRepository.retrieveAccount("id")).thenReturn(new Account("id", 40));
+			when(historyRepository.getHistory("id")).thenReturn(new History(List.of(
+					new Operation(OperationType.DEPOSIT, 20, 20),
+					new Operation(OperationType.DEPOSIT, 30, 50),
+					new Operation(OperationType.WITHDRAWAL, 10, 40))));
+
+			History retrievedHistory = service.getHistory("id");
+
+			List<Operation> operations = retrievedHistory.getOperations();
+			assertThat(operations.get(0))
+					.extracting(Operation::getType, Operation::getAmount, Operation::getAccountBalance)
+					.containsExactly(OperationType.DEPOSIT, 20, 20);
+			assertThat(operations.get(1))
+					.extracting(Operation::getType, Operation::getAmount, Operation::getAccountBalance)
+					.containsExactly(OperationType.DEPOSIT, 30, 50);
+			assertThat(operations.get(2))
+					.extracting(Operation::getType, Operation::getAmount, Operation::getAccountBalance)
+					.containsExactly(OperationType.WITHDRAWAL, 10, 40);
 		}
 	}
 
