@@ -1,9 +1,12 @@
 package fr.ama.bankaccount.service;
 
+import java.util.LinkedList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fr.ama.bankaccount.model.Account;
+import fr.ama.bankaccount.model.History;
 
 @Service
 public class AccountService {
@@ -49,6 +52,11 @@ public class AccountService {
 					"The account " + newAccount.getId() + " has disappeared between getting it and overriding it");
 		}
 		return newAccount;
+	}
+
+	public History getHistory(String accountId) throws UnknownAccountException {
+		accountRepository.retrieveAccount(accountId);
+		return new History(new LinkedList<>());
 	}
 
 }

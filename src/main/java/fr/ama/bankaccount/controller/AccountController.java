@@ -1,6 +1,7 @@
 package fr.ama.bankaccount.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import fr.ama.bankaccount.model.Account;
+import fr.ama.bankaccount.model.History;
 import fr.ama.bankaccount.service.AccountService;
 import fr.ama.bankaccount.service.UnknownAccountException;
 import fr.ama.bankaccount.service.WithdrawalTooLargeException;
@@ -54,6 +56,15 @@ public class AccountController {
 			return ResponseEntity.notFound().build();
 		} catch (WithdrawalTooLargeException e) {
 			return ResponseEntity.badRequest().body(e.getOldAccount());
+		}
+	}
+
+	@GetMapping("/{accountId}/history")
+	public ResponseEntity<History> getHistory(@PathVariable("accountId") String accountId) {
+		try {
+			return ResponseEntity.ok(accountService.getHistory(accountId));
+		} catch (UnknownAccountException e) {
+			return ResponseEntity.notFound().build();
 		}
 	}
 
