@@ -86,4 +86,73 @@ public class AccountServiceTest {
 		}
 	}
 
+	@Nested
+	class Withdrawals {
+
+		@Test
+		void withdrawing_from_an_account_should_retrieve_the_account_and_override_with_an_account_with_the_same_id_and_balance_decreased_with_the_withdrawal_amount()
+				throws Exception {
+			when(accountRepository.retrieveAccount("id")).thenReturn(new Account("id", 525));
+
+			Account returnedAccount = service.withdraw("id", 25);
+
+			verify(accountRepository, times(1)).overrideAccount(accountCaptor.capture());
+
+			Account overridenAccount = accountCaptor.getValue();
+			assertThat(overridenAccount.getId()).isEqualTo("id");
+			assertThat(overridenAccount.getBalance()).isEqualTo(500);
+			assertThat(returnedAccount).usingRecursiveComparison().isEqualTo(overridenAccount);
+		}
+
+		@Test
+		void withdrawing_the_whole_account_should_leave_the_account_empty()
+				throws Exception {
+			when(accountRepository.retrieveAccount("id")).thenReturn(new Account("id", 525));
+
+			Account returnedAccount = service.withdraw("id", 525);
+
+			verify(accountRepository, times(1)).overrideAccount(accountCaptor.capture());
+
+			Account overridenAccount = accountCaptor.getValue();
+			assertThat(overridenAccount.getId()).isEqualTo("id");
+			assertThat(overridenAccount.getBalance()).isEqualTo(0);
+			assertThat(returnedAccount).usingRecursiveComparison().isEqualTo(overridenAccount);
+		}
+
+		@Test
+		void withdrawing_more_than_the_account_balance_throw_a_WithdrawalTooLargeException_and_not_override_the_account()
+				throws Exception {
+			when(accountRepository.retrieveAccount("id")).thenReturn(new Account("id", 525));
+
+			assertThrows(WithdrawalTooLargeException.class, () -> service.withdraw("id", 526));
+
+			verify(accountRepository, never()).overrideAccount(Mockito.nullable(Account.class));
+		}
+
+		@Test
+		void withdrawing_in_an_NON_existing_account_should_throw_an_UnknownAccountException()
+				throws Exception {
+			doThrow(new UnknownAccountException("unknown id")).when(accountRepository).retrieveAccount("id");
+
+			assertThrows(UnknownAccountException.class, () -> service.withdraw("id", 75));
+
+			verify(accountRepository, never()).overrideAccount(Mockito.nullable(Account.class));
+		}
+
+		@Test
+		void should_throw_IllegalStateException_if_account_is_not_found_during_overriding()
+				throws Exception {
+			when(accountRepository.retrieveAccount("id")).thenReturn(new Account("id", 525));
+			doThrow(new UnknownAccountException("id")).when(accountRepository)
+					.overrideAccount(Mockito.argThat(new ArgumentMatcher<Account>() {
+						@Override
+						public boolean matches(Account account) {
+							return account.getId().equals("id");
+						}
+					}));
+
+			assertThrows(IllegalStateException.class, () -> service.withdraw("id", 75));
+		}
+	}
+
 }
