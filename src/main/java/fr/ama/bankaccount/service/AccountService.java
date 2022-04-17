@@ -1,7 +1,6 @@
 package fr.ama.bankaccount.service;
 
-import java.util.UUID;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fr.ama.bankaccount.model.Account;
@@ -9,12 +8,28 @@ import fr.ama.bankaccount.model.Account;
 @Service
 public class AccountService {
 
-	public Account createNewAccount() {
-		return new Account(UUID.randomUUID().toString(), 0);
+	private AccountRepository accountRepository;
+
+	@Autowired
+	public AccountService(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
-	public Account deposit(String accountId, Integer amount) {
-		return new Account(accountId, amount);
+	public Account createNewAccount() {
+		return accountRepository.createAccount();
+	}
+
+	public Account deposit(String accountId, Integer amount) throws UnknownAccountException {
+		Account oldAccount = accountRepository.retrieveAccount(accountId);
+		Account newAccount = new Account(oldAccount.getId(), oldAccount.getBalance() + amount);
+
+		try {
+			accountRepository.overrideAccount(newAccount);
+		} catch (UnknownAccountException e) {
+			throw new IllegalStateException(
+					"The account " + newAccount.getId() + " has disappeared between getting it and overriding it");
+		}
+		return newAccount;
 	}
 
 }
