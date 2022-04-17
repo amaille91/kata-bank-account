@@ -1,7 +1,5 @@
 package fr.ama.bankaccount.controller;
 
-import java.util.UUID;
-
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +20,7 @@ public class AccountController {
 
 	@PutMapping
 	public Account createAccount() {
-		return new Account(UUID.randomUUID().toString(), 0);
+		return accountService.createNewAccount();
 	}
 
 	@PutMapping("/{accountId}/deposit/{amount}")
