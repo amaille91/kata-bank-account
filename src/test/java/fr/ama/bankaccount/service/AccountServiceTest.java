@@ -155,4 +155,15 @@ public class AccountServiceTest {
 		}
 	}
 
+	@Nested
+	class Histories {
+
+		@Test
+		void requesting_history_on_an_NON_existing_account_should_throw_an_UnknownAccountException() throws Exception {
+			doThrow(new UnknownAccountException("id")).when(accountRepository).retrieveAccount("id");
+
+			assertThrows(UnknownAccountException.class, () -> service.getHistory("id"));
+		}
+	}
+
 }

@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.ama.bankaccount.model.Account;
 import fr.ama.bankaccount.model.History;
+import fr.ama.bankaccount.model.Operation;
+import fr.ama.bankaccount.model.Operation.OperationType;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -296,6 +298,60 @@ class AccountControllerIntegrationTest {
 			History history = objectMapper.readValue(historyResponse, History.class);
 
 			assertThat(history.getOperations()).isEmpty();
+		}
+
+		@Test
+		void requesting_an_history_after_some_operations_should_give_back_the_list_of_operations() throws Exception {
+			String createAccountResponse = mockMvc.perform(MockMvcRequestBuilders.put("/account"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account currentAccount = objectMapper.readValue(createAccountResponse, Account.class);
+
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/10"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn();
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/30"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn();
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/withdrawal/20"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn();
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/40"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn();
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/withdrawal/20"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn();
+
+			String historyResponse = mockMvc
+					.perform(MockMvcRequestBuilders.get("/account/" + currentAccount.getId() + "/history"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse()
+					.getContentAsString();
+
+			History history = objectMapper.readValue(historyResponse, History.class);
+
+			// Je le fais comme ça parce que sinon il faut que je mock un DateProvider pour
+			// permettre de gérer les dates mais je suis trop épuisé pour ça maintenant
+			List<Operation> operations = history.getOperations();
+
+			assertThat(operations.get(0))
+					.extracting(Operation::getType, Operation::getAmount, Operation::getAccountBalance)
+					.containsExactly(OperationType.DEPOSIT, 10, 10);
+			assertThat(operations.get(1))
+					.extracting(Operation::getType, Operation::getAmount, Operation::getAccountBalance)
+					.containsExactly(OperationType.DEPOSIT, 30, 40);
+			assertThat(operations.get(2))
+					.extracting(Operation::getType, Operation::getAmount, Operation::getAccountBalance)
+					.containsExactly(OperationType.WITHDRAWAL, 20, 20);
+			assertThat(operations.get(3))
+					.extracting(Operation::getType, Operation::getAmount, Operation::getAccountBalance)
+					.containsExactly(OperationType.DEPOSIT, 40, 60);
+			assertThat(operations.get(4))
+					.extracting(Operation::getType, Operation::getAmount, Operation::getAccountBalance)
+					.containsExactly(OperationType.WITHDRAWAL, 20, 40);
 		}
 	}
 
