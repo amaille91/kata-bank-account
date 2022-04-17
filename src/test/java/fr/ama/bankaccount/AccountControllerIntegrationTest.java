@@ -267,4 +267,35 @@ class AccountControllerIntegrationTest {
 		}
 	}
 
+	@Nested
+	class History {
+
+		@Test
+		void requesting_history_on_an_NON_existing_account_should_give_back_notFound() throws Exception {
+			mockMvc.perform(MockMvcRequestBuilders.get("/account/unkownId/history"))
+					.andExpect(status().isNotFound())
+					.andReturn();
+		}
+
+		@Test
+		void requesting_history_just_after_creation_should_give_back_an_empty_history() throws Exception {
+			String createAccountResponse = mockMvc.perform(MockMvcRequestBuilders.put("/account"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account currentAccount = objectMapper.readValue(createAccountResponse, Account.class);
+
+			String historyResponse = mockMvc
+					.perform(MockMvcRequestBuilders.get("/account/" + currentAccount.getId() + "/history"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse()
+					.getContentAsString();
+
+			History history = objectMapper.readValue(historyResponse, History.class);
+
+			assertThat(history.getOperations()).isEmpty();
+		}
+	}
+
 }
