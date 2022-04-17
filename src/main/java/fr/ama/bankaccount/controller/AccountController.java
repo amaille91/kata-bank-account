@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import fr.ama.bankaccount.model.Account;
 import fr.ama.bankaccount.service.AccountService;
 import fr.ama.bankaccount.service.UnknownAccountException;
+import fr.ama.bankaccount.service.WithdrawalTooLargeException;
 
 @RestController
 @RequestMapping("/account")
@@ -51,6 +52,8 @@ public class AccountController {
 			return ResponseEntity.ok(accountService.withdraw(accountId, amount));
 		} catch (UnknownAccountException e) {
 			return ResponseEntity.notFound().build();
+		} catch (WithdrawalTooLargeException e) {
+			return ResponseEntity.badRequest().body(e.getOldAccount());
 		}
 	}
 

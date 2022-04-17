@@ -194,7 +194,9 @@ class AccountControllerIntegrationTest {
 			Account currentAccount = objectMapper.readValue(createAccountResponse, Account.class);
 			String initialId = currentAccount.getId();
 
-			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/50000"))
+			int initialAmount = 500000;
+
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/" + initialAmount))
 					.andExpect(status().is2xxSuccessful())
 					.andReturn();
 
@@ -210,7 +212,7 @@ class AccountControllerIntegrationTest {
 
 			assertThat(currentAccount.getId()).isEqualTo(initialId);
 			assertThat(currentAccount.getBalance())
-					.isEqualTo(50000 - successivewithdrawalsAmount.stream().reduce(Math::addExact).orElse(-1));
+					.isEqualTo(initialAmount - successivewithdrawalsAmount.stream().reduce(Math::addExact).orElse(-1));
 		}
 
 		@Test
@@ -232,7 +234,7 @@ class AccountControllerIntegrationTest {
 					.andReturn()
 					.getResponse()
 					.getContentAsString();
-			Account account = objectMapper.readValue(createAccountResponse, Account.class);
+			Account account = objectMapper.readValue(badRequestContent, Account.class);
 
 			assertThat(account.getId()).isEqualTo(initialId);
 			assertThat(account.getBalance()).isEqualTo(5000);
@@ -258,7 +260,7 @@ class AccountControllerIntegrationTest {
 					.getResponse()
 					.getContentAsString();
 
-			Account account = objectMapper.readValue(createAccountResponse, Account.class);
+			Account account = objectMapper.readValue(withdrawalResponse, Account.class);
 
 			assertThat(account.getId()).isEqualTo(initialId);
 			assertThat(account.getBalance()).isEqualTo(0);

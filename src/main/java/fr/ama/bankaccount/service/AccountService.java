@@ -32,9 +32,15 @@ public class AccountService {
 		return newAccount;
 	}
 
-	public Account withdraw(String accountId, Integer amount) throws UnknownAccountException {
+	public Account withdraw(String accountId, Integer amount)
+			throws UnknownAccountException, WithdrawalTooLargeException {
 		Account oldAccount = accountRepository.retrieveAccount(accountId);
-		Account newAccount = new Account(oldAccount.getId(), oldAccount.getBalance() - amount);
+		int newBalance = oldAccount.getBalance() - amount;
+
+		if (newBalance < 0) {
+			throw new WithdrawalTooLargeException(oldAccount);
+		}
+		Account newAccount = new Account(oldAccount.getId(), newBalance);
 
 		try {
 			accountRepository.overrideAccount(newAccount);
