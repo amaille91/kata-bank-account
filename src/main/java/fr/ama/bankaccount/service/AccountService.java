@@ -32,6 +32,7 @@ public class AccountService {
 			throw new IllegalStateException(
 					"The account " + newAccount.getId() + " has disappeared between getting it and overriding it");
 		}
+		historyRepository.newDepositOnAccount(newAccount, amount);
 		return newAccount;
 	}
 
@@ -51,6 +52,7 @@ public class AccountService {
 			throw new IllegalStateException(
 					"The account " + newAccount.getId() + " has disappeared between getting it and overriding it");
 		}
+		historyRepository.newWithdrawalOnAccount(newAccount, amount);
 		return newAccount;
 	}
 

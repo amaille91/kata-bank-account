@@ -75,7 +75,13 @@ public class AccountServiceTest {
 
 			service.deposit("id", 75);
 
-			verify(historyRepository, times(1)).newDepositOnAccount(new Account("id", 600), 75);
+			verify(historyRepository, times(1)).newDepositOnAccount(Mockito.argThat(new ArgumentMatcher<Account>() {
+
+				@Override
+				public boolean matches(Account account) {
+					return account.getId().equals("id") && account.getBalance() == 600;
+				}
+			}), Mockito.eq(75));
 		}
 
 		@Test
@@ -129,7 +135,13 @@ public class AccountServiceTest {
 
 			service.withdraw("id", 25);
 
-			verify(historyRepository).newDepositOnAccount(new Account("id", 500), 25);
+			verify(historyRepository).newWithdrawalOnAccount(Mockito.argThat(new ArgumentMatcher<Account>() {
+
+				@Override
+				public boolean matches(Account account) {
+					return account.getId().equals("id") && account.getBalance() == 500;
+				}
+			}), Mockito.eq(25));
 
 		}
 
