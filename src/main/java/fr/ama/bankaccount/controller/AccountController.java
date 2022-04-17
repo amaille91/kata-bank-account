@@ -29,6 +29,10 @@ public class AccountController {
 	@PutMapping("/{accountId}/deposit/{amount}")
 	public @ResponseBody ResponseEntity<Account> depositInAccount(@PathVariable("accountId") String accountId,
 			@PathVariable("amount") Integer amount) {
+		if (amount <= 0) {
+			return ResponseEntity.badRequest().build();
+		}
+
 		try {
 			return ResponseEntity.ok(accountService.deposit(accountId, amount));
 		} catch (UnknownAccountException e) {

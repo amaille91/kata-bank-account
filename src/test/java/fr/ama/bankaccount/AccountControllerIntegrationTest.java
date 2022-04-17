@@ -96,7 +96,7 @@ class AccountControllerIntegrationTest {
 		}
 
 		@Test
-		void depositting_negative_amount_should_give_back_badRequest()
+		void depositting_negative_or_null_amount_should_give_back_badRequest()
 				throws Exception {
 			String createAccountResponse = mockMvc.perform(MockMvcRequestBuilders.put("/account"))
 					.andExpect(status().is2xxSuccessful())
@@ -105,6 +105,10 @@ class AccountControllerIntegrationTest {
 			Account currentAccount = objectMapper.readValue(createAccountResponse, Account.class);
 
 			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/-1200"))
+					.andExpect(status().isBadRequest())
+					.andReturn();
+
+			mockMvc.perform(put("/account/" + currentAccount.getId() + "/deposit/0"))
 					.andExpect(status().isBadRequest())
 					.andReturn();
 		}
