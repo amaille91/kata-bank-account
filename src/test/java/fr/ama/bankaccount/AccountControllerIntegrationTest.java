@@ -12,6 +12,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fr.ama.bankaccount.model.Account;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class AccountControllerIntegrationTest {
@@ -33,7 +35,7 @@ class AccountControllerIntegrationTest {
 				.getResponse().getContentAsString();
 		Account account = objectMapper.readValue(putResponseBody, Account.class);
 
-		assertThat(accountBalance.getId()).isNotNull();
-		assertThat(accountBalance.getBalance()).isEqualTo(0);
+		assertThat(account.getId()).isNotNull();
+		assertThat(account.getBalance()).isEqualTo(0);
 	}
 }
