@@ -124,4 +124,64 @@ class AccountControllerIntegrationTest {
 		}
 	}
 
+	@Nested
+	class Withdrawals {
+		// TODO Test for int overflow or use BigInteger
+		@Test
+		void putting_a_withdrawal_on_an_existing_account_should_give_back_the_new_account_with_the_balance_decreased()
+				throws Exception {
+			String createAccountResponse = mockMvc.perform(MockMvcRequestBuilders.put("/account"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account initialAccount = objectMapper.readValue(createAccountResponse, Account.class);
+
+			String depositResponse = mockMvc.perform(put("/account/" + initialAccount.getId() + "/deposit/1000"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account fullAccount = objectMapper.readValue(depositResponse, Account.class);
+
+			String withdrawalResponse = mockMvc.perform(put("/account/" + initialAccount.getId() + "/withdrawal/1000"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account newAccount = objectMapper.readValue(depositResponse, Account.class);
+
+			assertThat(newAccount.getId()).isEqualTo(initialAccount.getId());
+			assertThat(newAccount.getBalance()).isEqualTo(0);
+		}
+
+		@Test
+		void withdrawing_on_a_NON_existing_account_should_give_back_404()
+				throws Exception {
+			mockMvc.perform(put("/account/non-existing-account/withdrawal/10000"))
+					.andExpect(status().isNotFound())
+					.andReturn();
+		}
+
+		@Test
+		void withdrawing_negative_or_null_amount_should_give_back_badRequest()
+				throws Exception {
+			String createAccountResponse = mockMvc.perform(MockMvcRequestBuilders.put("/account"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+			Account initialAccount = objectMapper.readValue(createAccountResponse, Account.class);
+
+			String depositResponse = mockMvc.perform(put("/account/" + initialAccount.getId() + "/deposit/5000"))
+					.andExpect(status().is2xxSuccessful())
+					.andReturn()
+					.getResponse().getContentAsString();
+
+			mockMvc.perform(put("/account/" + initialAccount.getId() + "/withdrawal/-1200"))
+					.andExpect(status().isBadRequest())
+					.andReturn();
+
+			mockMvc.perform(put("/account/" + initialAccount.getId() + "/deposit/0"))
+					.andExpect(status().isBadRequest())
+					.andReturn();
+		}
+	}
+
 }
